@@ -76,9 +76,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Hokimastah/CRISP"
-Repository = "https://github.com/Hokimastah/CRISP"
-Issues = "https://github.com/Hokimastah/CRISP/issues"
+Homepage = "https://github.com/Hokimastah/CRISP-Med"
+Repository = "https://github.com/Hokimastah/CRISP-Med"
+Issues = "https://github.com/Hokimastah/CRISP/issues-Med"
 
 [project.scripts]
 crisp = "crisp.cli:main"
