@@ -21,7 +21,7 @@ MEDICAL_MODEL_NAMES = {
 }
 
 
-def load_medical_array(image_path: str) -> np.ndarray:
+def load_medical_array(image_path: str, preserve_rgb: bool = True) -> np.ndarray:
     path = Path(image_path)
     suffix = path.suffix.lower()
 
@@ -39,9 +39,17 @@ def load_medical_array(image_path: str) -> np.ndarray:
         slope = float(getattr(ds, "RescaleSlope", 1.0))
         intercept = float(getattr(ds, "RescaleIntercept", 0.0))
         arr = arr * slope + intercept
+
         return arr.astype(np.float32)
 
-    image = Image.open(str(path)).convert("L")
+    image = Image.open(str(path))
+
+    # Penting untuk dataset seperti BloodMNIST:
+    # gambar RGB tidak dipaksa menjadi grayscale.
+    if preserve_rgb and image.mode in {"RGB", "RGBA", "P", "CMYK"}:
+        return np.asarray(image.convert("RGB")).astype(np.float32)
+
+    image = image.convert("L")
     return np.asarray(image).astype(np.float32)
 
 
@@ -54,6 +62,17 @@ def window_ct(arr: np.ndarray, center: float, width: float) -> np.ndarray:
 
 
 def normalize_medical_array(arr: np.ndarray, mode: str = "percentile") -> np.ndarray:
+    # Jika input adalah RGB, jangan lakukan CT windowing / percentile grayscale.
+    # Cukup pastikan rentang nilainya 0-255 uint8.
+    if arr.ndim == 3:
+        arr = arr.astype(np.float32)
+
+        if arr.max() > 1.0:
+            arr = arr / 255.0
+
+        arr = np.clip(arr, 0.0, 1.0)
+        return (arr * 255.0).astype(np.uint8)
+
     mode = mode.lower() if isinstance(mode, str) else mode
 
     if mode == "ct_lung":
@@ -90,6 +109,7 @@ def array_to_pil_rgb(arr: np.ndarray) -> Image.Image:
         if arr.shape[-1] == 1:
             arr = arr[..., 0]
             return Image.fromarray(arr.astype(np.uint8), mode="L").convert("RGB")
+
         return Image.fromarray(arr.astype(np.uint8)).convert("RGB")
 
     raise ValueError(f"Unsupported medical image shape: {arr.shape}")
@@ -132,17 +152,23 @@ class MedicalPreprocessor:
         image_size: int = 224,
         intensity_mode: str = "percentile",
         normalize: str = "imagenet",
+        preserve_rgb: bool = True,
     ) -> None:
         self.image_size = int(image_size)
         self.intensity_mode = intensity_mode
         self.normalize = normalize
+        self.preserve_rgb = preserve_rgb
+
         self.transform = build_tensor_transform(
             image_size=self.image_size,
             normalize=self.normalize,
         )
 
     def load_pil(self, image_path: str) -> Image.Image:
-        arr = load_medical_array(image_path)
+        arr = load_medical_array(
+            image_path=image_path,
+            preserve_rgb=self.preserve_rgb,
+        )
         arr = normalize_medical_array(arr, mode=self.intensity_mode)
         return array_to_pil_rgb(arr)
 
@@ -230,6 +256,7 @@ class MedicalImageEncoder(BaseEncoder):
         intensity_mode: str = "percentile",
         normalize: str = "imagenet",
         checkpoint_path: Optional[str] = None,
+        preserve_rgb: bool = True,
         **kwargs,
     ) -> None:
         self.name = name.lower()
@@ -239,6 +266,7 @@ class MedicalImageEncoder(BaseEncoder):
         self.intensity_mode = intensity_mode
         self.normalize = normalize
         self.checkpoint_path = checkpoint_path
+        self.preserve_rgb = preserve_rgb
 
         self.model, self.embedding_dim = build_medical_model(
             name=self.name,
@@ -259,6 +287,7 @@ class MedicalImageEncoder(BaseEncoder):
             image_size=self.image_size,
             intensity_mode=self.intensity_mode,
             normalize=self.normalize,
+            preserve_rgb=self.preserve_rgb,
         )
 
     def load_checkpoint(self, checkpoint_path: str) -> None:
