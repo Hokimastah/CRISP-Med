@@ -44,8 +44,8 @@ def load_medical_array(image_path: str, preserve_rgb: bool = True) -> np.ndarray
 
     image = Image.open(str(path))
 
-    # Penting untuk dataset seperti BloodMNIST:
-    # gambar RGB tidak dipaksa menjadi grayscale.
+    # Untuk dataset RGB seperti BloodMNIST,
+    # jangan ubah gambar menjadi grayscale.
     if preserve_rgb and image.mode in {"RGB", "RGBA", "P", "CMYK"}:
         return np.asarray(image.convert("RGB")).astype(np.float32)
 
@@ -62,8 +62,8 @@ def window_ct(arr: np.ndarray, center: float, width: float) -> np.ndarray:
 
 
 def normalize_medical_array(arr: np.ndarray, mode: str = "percentile") -> np.ndarray:
-    # Jika input adalah RGB, jangan lakukan CT windowing / percentile grayscale.
-    # Cukup pastikan rentang nilainya 0-255 uint8.
+    # Jika input RGB, tidak perlu dilakukan CT windowing atau percentile grayscale.
+    # Cukup pastikan nilainya berada pada rentang 0-255 uint8.
     if arr.ndim == 3:
         arr = arr.astype(np.float32)
 
