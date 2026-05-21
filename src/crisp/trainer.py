@@ -11,7 +11,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, Subset
 from tqdm import tqdm
 
-from datasets import FolderMedicalDataset
+from .datasets import FolderMedicalDataset
 from .encoders.medical import build_medical_model
 
 
