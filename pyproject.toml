@@ -48,6 +48,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+medical = ["pydicom>=2.4.0"]
 annoy = ["annoy>=1.17.0"]
 faiss = ["faiss-cpu>=1.7.4"]
 clip = ["open_clip_torch>=2.20.0"]
