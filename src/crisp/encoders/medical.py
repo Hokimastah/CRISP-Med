@@ -21,7 +21,7 @@ MEDICAL_MODEL_NAMES = {
 }
 
 
-def load_medical_array(image_path: str, preserve_rgb: bool = True) -> np.ndarray:
+def load_medical_array(image_path: str, preserve_rgb: bool = False) -> np.ndarray:
     path = Path(image_path)
     suffix = path.suffix.lower()
 
@@ -152,7 +152,7 @@ class MedicalPreprocessor:
         image_size: int = 224,
         intensity_mode: str = "percentile",
         normalize: str = "imagenet",
-        preserve_rgb: bool = True,
+        preserve_rgb: bool = False,
     ) -> None:
         self.image_size = int(image_size)
         self.intensity_mode = intensity_mode
@@ -256,7 +256,7 @@ class MedicalImageEncoder(BaseEncoder):
         intensity_mode: str = "percentile",
         normalize: str = "imagenet",
         checkpoint_path: Optional[str] = None,
-        preserve_rgb: bool = True,
+        preserve_rgb: bool = False,
         **kwargs,
     ) -> None:
         self.name = name.lower()

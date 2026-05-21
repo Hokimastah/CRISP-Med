@@ -43,7 +43,10 @@ def split_indices(n: int, val_split: float, seed: int = 42):
     return train_indices, val_indices
 
 
-def compute_class_weights(dataset: FolderMedicalDataset, num_classes: int) -> torch.Tensor:
+def compute_class_weights(
+    dataset: FolderMedicalDataset,
+    num_classes: int,
+) -> torch.Tensor:
     counts = np.zeros(num_classes, dtype=np.float32)
 
     for _, label in dataset.samples:
@@ -55,7 +58,10 @@ def compute_class_weights(dataset: FolderMedicalDataset, num_classes: int) -> to
     return torch.tensor(weights, dtype=torch.float32)
 
 
-def extract_backbone_state_dict(model: nn.Module, encoder: str) -> Dict[str, torch.Tensor]:
+def extract_backbone_state_dict(
+    model: nn.Module,
+    encoder: str,
+) -> Dict[str, torch.Tensor]:
     state = model.state_dict()
     encoder = encoder.lower()
 
@@ -133,6 +139,7 @@ def train_medical_backbone(
     image_size: int = 224,
     intensity_mode: str = "percentile",
     normalize: str = "imagenet",
+    preserve_rgb: bool = False,
     val_split: float = 0.2,
     pretrained: bool = True,
     device: Optional[str] = None,
@@ -149,6 +156,7 @@ def train_medical_backbone(
         image_size=image_size,
         intensity_mode=intensity_mode,
         normalize=normalize,
+        preserve_rgb=preserve_rgb,
     )
 
     num_classes = len(dataset.class_to_idx)
@@ -264,6 +272,7 @@ def train_medical_backbone(
             "image_size": image_size,
             "intensity_mode": intensity_mode,
             "normalize": normalize,
+            "preserve_rgb": preserve_rgb,
         },
         "training": {
             "epochs": epochs,
@@ -272,6 +281,7 @@ def train_medical_backbone(
             "weight_decay": weight_decay,
             "val_split": val_split,
             "pretrained": pretrained,
+            "class_weighted_loss": class_weighted_loss,
             "best_metric": best_metric,
             "history": history,
         },

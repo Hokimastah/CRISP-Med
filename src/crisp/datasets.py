@@ -29,9 +29,11 @@ class FolderMedicalDataset(Dataset):
         image_size: int = 224,
         intensity_mode: str = "percentile",
         normalize: str = "imagenet",
+        preserve_rgb: bool = False,
         class_to_idx: Optional[Dict[str, int]] = None,
     ) -> None:
         self.root = Path(root)
+        self.preserve_rgb = preserve_rgb
 
         if not self.root.exists():
             raise FileNotFoundError(f"Dataset folder not found: {root}")
@@ -42,11 +44,15 @@ class FolderMedicalDataset(Dataset):
             if not classes:
                 raise ValueError(f"No class folders found in {root}")
 
-            self.class_to_idx = {class_name: idx for idx, class_name in enumerate(classes)}
+            self.class_to_idx = {
+                class_name: idx for idx, class_name in enumerate(classes)
+            }
         else:
             self.class_to_idx = dict(class_to_idx)
 
-        self.idx_to_class = {idx: class_name for class_name, idx in self.class_to_idx.items()}
+        self.idx_to_class = {
+            idx: class_name for class_name, idx in self.class_to_idx.items()
+        }
 
         samples: List[Tuple[str, int]] = []
 
@@ -68,6 +74,7 @@ class FolderMedicalDataset(Dataset):
             image_size=image_size,
             intensity_mode=intensity_mode,
             normalize=normalize,
+            preserve_rgb=preserve_rgb,
         )
 
     def __len__(self) -> int:
